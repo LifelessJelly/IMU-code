@@ -1,0 +1,2 @@
+g++ test.cpp base-64.cpp -o test-base-64
+./test-base64

@@ -12,26 +12,13 @@
 
 class ImuData {
 public:
-    float accelerationX;
     float accelerationY;
-    float accelerationZ;
-    float magnitude;
-
     std::uint64_t cadence;
     std::double_t strideLength;
-
     char foot;
     // to calculate velocity over time -> (t1-t0) * (a1+a0) / 2
 
     ImuData() = default;
-
-    void printData() const {
-
-        std::stringstream ss;
-        ss << "X Acceleration: " << accelerationX << ", Y Acceleration: " << accelerationY << ", Z Acceleration: " << accelerationZ << ", Time elapsed: "
-        << millis() << ", On " << (foot == 'L' ? "Left" : "Right") << "foot";
-        Serial.println(ss.str().c_str());
-    }
 
     bool isLeftLeg() const {
         return foot == 'L';
@@ -42,6 +29,9 @@ public:
 ImuData leftLeg;
 ImuData rightLeg;
 String encoded_str;
+std::double_t body_temp;
+
+auto mlx = Adafruit_MLX90614();
 
 void receiveCallback(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
@@ -66,6 +56,8 @@ void receiveCallback(const uint8_t * mac, const uint8_t *incomingData, int len) 
     Serial.println(encoded_str.length());
 
     esp_camera_fb_return(frameBuffer);
+
+    body_temp = mlx.readObjectTempC();
 }
 
 void setup(){
@@ -73,6 +65,14 @@ void setup(){
     Serial.begin(115200);
     Serial.println("Gay");
     init_camera();
+
+
+    if (mlx.begin()) {
+        Serial.println("Error connecting to MLX sensor");
+    }
+    Serial.print("Emissivity setting: ");
+    Serial.println(mlx.readEmissivity());
+
     pinMode (FLASH_GPIO_NUM, OUTPUT);
     WiFiClass::mode(WIFI_STA);
     establishConnection();
@@ -106,20 +106,15 @@ void loop(){
 
         const auto leg_data_ref = jsonStr["leg_data"];
 
-        leg_data_ref["accelXLeft"] = leftLeg.accelerationX;
-        leg_data_ref["accelYLeft"] = leftLeg.accelerationY;
-        leg_data_ref["accelZLeft"] = leftLeg.accelerationZ;
-        leg_data_ref["magnitudeL"] = leftLeg.magnitude;
+        leg_data_ref["upward_accelerationL"] = leftLeg.accelerationY;
         leg_data_ref["cadenceL"] = leftLeg.cadence;
         leg_data_ref["strideLengthL"] = leftLeg.strideLength;
 
-        leg_data_ref["accelXRight"] = rightLeg.accelerationX;
-        leg_data_ref["accelYRight"] = rightLeg.accelerationY;
-        leg_data_ref["accelZRight"] = rightLeg.accelerationZ;
-        leg_data_ref["magnitudeR"] = rightLeg.magnitude;
+        leg_data_ref["upward_accelerationR"] = rightLeg.accelerationY;
         leg_data_ref["cadenceR"] = rightLeg.cadence;
         leg_data_ref["strideLengthR"] = rightLeg.strideLength;
 
+        jsonStr["temperature"] = body_temp;
         jsonStr["camera_base64"] = encoded_str;
 
         jsonStr["timestamp"] = millis();

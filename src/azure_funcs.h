@@ -84,6 +84,7 @@ static void connectToWiFi()
     Logger.Info("Connecting to WIFI SSID " + String(ssid));
 
     WiFi.begin(ssid, password);
+    WiFi.printDiag(Serial);
     while (WiFiClass::status() != WL_CONNECTED)
     {
         delay(500);

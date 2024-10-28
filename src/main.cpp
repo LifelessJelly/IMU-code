@@ -3,10 +3,10 @@
 #include <sstream>
 #include "camera_init.h"
 #include <Adafruit_MLX90614.h>
-#include <ArduinoJson/Json/JsonSerializer.hpp>
 #include <ArduinoJson.h>
 #include <azure_funcs.h>
-#include <base-64.h>
+#include <esp_wifi.h>
+#include <base64.h>
 
 #define FLASH_GPIO_NUM 4
 
@@ -41,7 +41,7 @@ public:
 
 ImuData leftLeg;
 ImuData rightLeg;
-std::string encoded_str;
+String encoded_str;
 
 void receiveCallback(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
@@ -60,10 +60,10 @@ void receiveCallback(const uint8_t * mac, const uint8_t *incomingData, int len) 
         return;
     }
 
-    encoded_str = base64_encode(frameBuffer->buf, frameBuffer->len, true);
+    encoded_str = base64::encode(frameBuffer->buf, frameBuffer->len);
 
     Serial.println(encoded_str.c_str());
-    Serial.println(encoded_str.size());
+    Serial.println(encoded_str.length());
 
     esp_camera_fb_return(frameBuffer);
 }
@@ -75,6 +75,7 @@ void setup(){
     init_camera();
     pinMode (FLASH_GPIO_NUM, OUTPUT);
     WiFiClass::mode(WIFI_STA);
+    establishConnection();
     if (esp_now_init() != ESP_OK) {
         Serial.println("Error initialising ESP-NOW");
         return;
@@ -86,7 +87,6 @@ void setup(){
 }
 
 void loop(){
-
 
     if (WiFiClass::status() != WL_CONNECTED)
     {
@@ -127,13 +127,13 @@ void loop(){
         std::string payload = "{}";
 
         serializeJson(jsonStr, payload);
-
-        if (esp_mqtt_client_publish(mqtt_client, telemetry_topic, payload.c_str(), 0, MQTT_QOS1, DO_NOT_RETAIN_MSG) == 0) {
-            Serial.println("Failed to send :(");
-        }
-        else {
-            Serial.println("Send successful!");
-        }
+        //
+        // if (esp_mqtt_client_publish(mqtt_client, telemetry_topic, payload.c_str(), 0, MQTT_QOS1, DO_NOT_RETAIN_MSG) == 0) {
+        //     Serial.println("Failed to send :(");
+        // }
+        // else {
+        //     Serial.println("Send successful!");
+        // }
         next_telemetry_send_time_ms = millis() + TELEMETRY_FREQUENCY_MILLISECS;
     }
     //takes the latest frame of the IMU readings (because the camera is the slowest among all of them)

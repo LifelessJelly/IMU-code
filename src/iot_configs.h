@@ -55,11 +55,11 @@
 #endif // IOT_CONFIG_USE_X509_CERT
 
 // Azure IoT
-#define IOT_CONFIG_IOTHUB_FQDN "JosephSmellyHub.azure-devices.net"
-#define IOT_CONFIG_DEVICE_ID "iotdevice0001"
+#define IOT_CONFIG_IOTHUB_FQDN "hacx-gitgud-iothub.azure-devices.net"
+#define IOT_CONFIG_DEVICE_ID "deviceset0"
 // Use device key if not using certificates
 #ifndef IOT_CONFIG_USE_X509_CERT
-#define IOT_CONFIG_DEVICE_KEY "1e5AYNVV10cqU4aRAfxyXajjiq7XrJx5SfIPZlkXnPg="
+#define IOT_CONFIG_DEVICE_KEY "jWyEov7O2x/CJ82hQSGVAszec1+4uOT/bAIoTOwCadE="
 #endif // IOT_CONFIG_USE_X509_CERT
 
 
